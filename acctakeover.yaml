@@ -1,0 +1,50 @@
+id: account-takeover
+info:
+  name: Account Takeover
+  author: Akshay Krishna
+  severity: high
+  description: |
+    Detects potential account takeover vulnerabilities that allow attackers to take control of another user's account on the target website.
+    This template checks for common vulnerabilities, such as password reset and email confirmation vulnerabilities.
+    It can be used as part of a larger security assessment to identify potential areas of weakness and improve overall security posture.
+
+requests:
+- method: POST
+  path:
+    - "{{FuzzParam}}"
+  params:
+    - name: email
+      type: wordlist
+      words:
+        - user@example.com
+        - admin@example.com
+        - test@example.com
+  matchers-condition: and
+  matchers:
+    - type: status
+      status:
+        - 200
+        - 302
+    - type: word
+      words:
+        - password
+        - reset
+        - confirm
+        - email
+    - type: regex
+      regex:
+        - "Account not found"
+        - "Invalid email address"
+        - "Invalid email or password"
+    - type: wordcount
+      words:
+        - email sent
+        - confirmation sent
+        - reset link sent
+        - reset password
+    - type: regex
+      part: body
+      regex:
+        - "This email address is not associated with an account"
+        - "You need to verify your email address before logging in"
+        - "This link has expired or is invalid"
