@@ -1,0 +1,66 @@
+id: sqli-injection
+info:
+  name: SQL Injection
+  author: Akshay krishna
+  severity: high
+  description: |
+    Detects potential SQL injection vulnerabilities on the target website.
+    This template sends SQL injection payloads to web forms and checks for error messages or unexpected behavior in the response.
+    It can be used as part of a larger security assessment to identify potential areas of weakness and improve overall security posture.
+
+requests:
+- method: POST
+  path:
+    - "{{FuzzURL}}"
+  payloads:
+    - name: basic-sqli
+      type: file
+      path: ./payloads/basic-sqli.txt
+  matchers-condition: or
+  matchers:
+    - type: status
+      status:
+        - 200
+        - 302
+    - type: word
+      words:
+        - "error"
+        - "syntax"
+        - "mysql"
+        - "mssql"
+        - "oracle"
+        - "db2"
+        - "informix"
+    - type: regex
+      regex:
+        - "You have an error in your SQL syntax"
+        - "Warning: mysql_.*() expects parameter .* to be .*"
+        - "SQL syntax.*MySQL"
+        - "Warning: oci_.*() expects parameter .* to be .*"
+        - "Microsoft SQL Server Native Client .* Error"
+        - "Unclosed quotation mark after the character string"
+        - "Incorrect syntax near"
+        - "ORA-01756"
+        - "DB2 SQL error"
+    - type: and
+      matchers:
+        - type: wordcount
+          words:
+            - "error"
+            - "syntax"
+            - "mysql"
+            - "mssql"
+            - "oracle"
+            - "db2"
+            - "informix"
+          operation: "<"
+          value: 2
+        - type: wordcount
+          words:
+            - "You have an error in your SQL syntax"
+            - "SQL syntax.*MySQL"
+            - "Microsoft SQL Server Native Client .* Error"
+            - "ORA-01756"
+            - "DB2 SQL error"
+          operation: ">"
+          value: 0
